@@ -4,7 +4,7 @@ Timestamps are read line by line.
 Timestamps may need to be edited to fit the scripts
 """
 
-import sys, subprocess nnn
+import sys, subprocess
 
 argsCount = 2
 
@@ -53,7 +53,6 @@ sourceDuration = get_length(sourceName)
 print(sourceDuration)
 
 
-lineNumber = 0
 with open(timestamps, 'r', encoding="utf-8") as f:
     for line in f:
         startTime.append(line.split()[0]) # Starting timestamp, from which file would be cut
@@ -87,3 +86,5 @@ while i < lineNumber:
 # TODO: Remove unnecessary stuff,
 # TODO: check if thacks are correct length,
 # TODO: do proper description
+# TODO: fix filepaths
+# TODO: examples
