@@ -11,10 +11,10 @@ argsCount = 3
 
 def printUsage():
     print("Usage:")
-    print("     $ python3 ffmsplit.py <audio_source_file> <timestamps_file> <genreName>\n")
+    print("     $ python3 ffmsplit.py <audio_source_file> <timestamps_file> <genre>\n")
     print("Timespamps format example:")
-    print("           00:00:00 - Long Artist_name - Some silly song name")
-    print("           00:01:12 - artist15 - Track 2")
+    print("           00:00 - Long Artist_name - Some silly song name")
+    print("           01:12 - artist15 - Track 2")
     print("           ... ")
     print("           02:32:54 - End.")
 
