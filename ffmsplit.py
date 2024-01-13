@@ -5,28 +5,51 @@ Timestamps may need to be edited to fit the scripts
 """
 
 import sys, subprocess
+from typing import List
 
-argsCount = 2
+argsCount = 3
+
+def printUsage():
+    print("Usage:")
+    print("     $ python3 ffmsplit.py <audio_source_file> <timestamps_file> <genreName>\n")
+    print("Timespamps format example:")
+    print("           00:00:00 - Long Artist_name - Some silly song name")
+    print("           00:01:12 - artist15 - Track 2")
+    print("           ... ")
+    print("           02:32:54 - End.")
+
 
 if len(sys.argv) < argsCount:
     print("ERROR: Not enough arguments. Expected", argsCount-1, "args, recived", len(sys.argv)-1, file=sys.stderr)
+    printUsage();
     sys.exit(1)
 
 if len(sys.argv) > argsCount+1:
-    sys.exit("Too many argumetns i guess");
+    printUsage();
+    sys.exit("ERROR: Too many argumetns i guess")
 
 sourceName = sys.argv[1] # Name of the input media file
-timestamps = sys.argv[2] # File with timestamps
+timestamps = sys.argv[2] # file with timestamps
+genreName  = sys.argv[3]
 
 startTime = []
-endTime = []
+endtime = list[int]
+
+albumName = sourceName.lstrip("./.\\") # try to remove .\ or ./ at the start of the file name
+albumName = albumName.rsplit(".",1)[0]
+
+# print(albumName)
+
+titleName  = []
+artistName = []
 resultName = []
+
 
 
 def get_length(filename):
     """Get the lentgh of the audio file and convert it
-    into a formatted timecode string (1:23:23)"""
-    # INFO: if the file is >9 hours long, it will probably break stuff
+    into a formatted timecode string (1:23:23). This function should not exit as it is only used once, but I copy pasted from stack overflow, so I don't care really."""
+    # FIXME: if the file is >9 hours long, it will probably break stuff
     length = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                              "format=duration", "-of",
                              "default=noprint_wrappers=1:nokey=1", filename],
@@ -48,43 +71,58 @@ def tcode_to_int(tcode):
     if len(t) == 2:
         result = (float(t[0]) * 60) + float(t[1])
     return int(result)
-        
+
 sourceDuration = get_length(sourceName)
-print(sourceDuration)
+# print("INFO:",sourceDuration)
 
 
+lineNumber = 0
 with open(timestamps, 'r', encoding="utf-8") as f:
     for line in f:
         startTime.append(line.split()[0]) # Starting timestamp, from which file would be cut
-        resultName.append(" ".join(line.split()[2:])) # sys.argv[4] # Name of the resulting file, produced by ffmpeg
+
+        artistName.append(line.split(" - ")[1])
+        titleName.append(line.split(" - ")[2].rstrip())
+        resultName.append(" ".join(line.split()[2:])) # Name of the resulting file, produced by ffmpeg
+        
         lineNumber += 1
 
-        print("------------------------------------------")
-        print(lineNumber)
-        print(line.split()[0])
-        print(line.split())
+        # print("/------------------------------------------/")
+        # print("INFO: Artist:", artistName)
+        # print("INFO: Title:", titleName)        
+        # print("INFO:",line.split()[0])
+        # print("INFO:",line.split())
 
 i = 0
 while i < lineNumber:
-    print(i)
+    # print("INFO: Line (track) number:",i)
     if i != lineNumber-1:
         endTime = startTime[i+1]
     elif i == lineNumber-1:
         endTime = sourceDuration
 
-    trackLength = str(tcode_to_int(endTime) - tcode_to_int(startTime[i])) 
-    FfmpegCommand = ["ffmpeg",\
-                     "-ss", startTime[i], "-i", sourceName,\
-                     "-to", trackLength, "-c", "copy", f"{resultName[i]}.opus"]
+    trackLength = str(tcode_to_int(endTime) - tcode_to_int(startTime[i]))
+    FfmpegCommand = ['ffmpeg', '-hide_banner',\
+                     '-ss', startTime[i], '-i', sourceName,\
+                     '-to', trackLength, '-c', 'copy',\
+                     '-metadata', f'title={titleName[i]}',\
+                     '-metadata', f'artist={artistName[i]}',\
+                     '-metadata', f'genre={genreName}',\
+                     '-metadata', f'album={albumName}',\
+                     f'{resultName[i]}.opus']
 
-    print("------------------------------------------")    
-    print("Resulting ffmpeg command:", FfmpegCommand)
-    print("Everything after timestamps:", f"{resultName[i]}.opus")
+    # print("------------------------------------------")
+    # print("INFO: Resulting ffmpeg command:", FfmpegCommand)
+    # print("INFO: Resulting File Name:", f"{resultName[i]}.opus")
     subprocess.run(FfmpegCommand)
     i += 1
 
 # TODO: Remove unnecessary stuff,
-# TODO: check if thacks are correct length,
+# TODO: check if tracks are correct length,
 # TODO: do proper description
-# TODO: fix filepaths
+# TODO: fix filepaths <= I forgot what I meant here
 # TODO: examples
+# TODO: add track order metadata for albums (if that is possible (probably is))
+# TODO: Add metadata adding, preferebly with user-provided options for album and genre. Album could be fetched from a source file, but this is not always good, and genre can be guessed.
+# TODO: Learn what `-acodec` parameter means in ffmpeg
+# `ffmpeg -i "Akiba - Waon Existence.opus" -acodec copy -metadata title="Waon Existence" -metadata artist="Akiba" -metadata genre="Breakcore" album="cloud textured breakcore" "Akiba - Waon Existence1.opus"`
