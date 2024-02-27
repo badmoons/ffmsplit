@@ -38,8 +38,6 @@ endtime = list[int]
 albumName = sourceName.lstrip("./.\\") # try to remove .\ or ./ at the start of the file name
 albumName = albumName.rsplit(".",1)[0]
 
-# print(albumName)
-
 titleName  = []
 artistName = []
 resultName = []
@@ -116,13 +114,3 @@ while i < lineNumber:
     # print("INFO: Resulting File Name:", f"{resultName[i]}.opus")
     subprocess.run(FfmpegCommand)
     i += 1
-
-# TODO: Remove unnecessary stuff,
-# TODO: check if tracks are correct length,
-# TODO: do proper description
-# TODO: fix filepaths <= I forgot what I meant here
-# TODO: examples
-# TODO: add track order metadata for albums (if that is possible (probably is))
-# TODO: Add metadata adding, preferebly with user-provided options for album and genre. Album could be fetched from a source file, but this is not always good, and genre can be guessed.
-# TODO: Learn what `-acodec` parameter means in ffmpeg
-# `ffmpeg -i "Akiba - Waon Existence.opus" -acodec copy -metadata title="Waon Existence" -metadata artist="Akiba" -metadata genre="Breakcore" album="cloud textured breakcore" "Akiba - Waon Existence1.opus"`
